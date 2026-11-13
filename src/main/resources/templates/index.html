@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Forno da Vila | Pizza delivery</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">FORNO<span> DA VILA</span></a>
+    <span class="topbar-note">Pizza feita com calma, entregue quentinha.</span>
+</header>
+
+<main>
+    <section class="hero">
+        <div>
+            <p class="eyebrow">MASSA ARTESANAL · INGREDIENTES FRESCOS</p>
+            <h1>Uma boa noite<br>começa com pizza.</h1>
+            <p class="hero-copy">Escolha seu sabor favorito. A gente cuida do resto.</p>
+            <a class="button button-light" href="#pedido">Fazer meu pedido <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+            <span class="hero-sun"></span>
+            <span class="pizza pizza-large">🍕</span>
+            <span class="hero-spark spark-one">✳</span>
+            <span class="hero-spark spark-two">✦</span>
+        </div>
+    </section>
+
+    <div class="notice notice-success" th:if="${success}" th:text="${success}" role="status"></div>
+    <div class="notice notice-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+    <section class="content-grid" id="pedido">
+        <div class="menu-section">
+            <p class="eyebrow">DO NOSSO FORNO PARA VOCÊ</p>
+            <h2>O cardápio</h2>
+            <div class="menu-list">
+                <article class="menu-item" th:each="pizza : ${pizzaTypes}">
+                    <div class="menu-icon" aria-hidden="true">🍕</div>
+                    <div class="menu-description">
+                        <h3 th:text="${pizza.displayName}">Pizza</h3>
+                        <p>Assada na hora, massa de longa fermentação.</p>
+                    </div>
+                    <strong class="price">R$ <span th:text="${#numbers.formatDecimal(pizza.price, 1, 'POINT', 2, 'COMMA')}">39,90</span></strong>
+                </article>
+            </div>
+        </div>
+
+        <section class="order-panel">
+            <p class="eyebrow">É SÓ PREENCHER</p>
+            <h2>Monte seu pedido</h2>
+            <form th:action="@{/orders}" th:object="${orderForm}" method="post">
+                <label for="customerName">Seu nome</label>
+                <input id="customerName" type="text" th:field="*{customerName}" maxlength="80"
+                       placeholder="Como podemos te chamar?" required>
+
+                <label for="address">Endereço de entrega</label>
+                <input id="address" type="text" th:field="*{address}" maxlength="200"
+                       placeholder="Rua, número e complemento" required>
+
+                <label for="pizzaType">Sabor</label>
+                <select id="pizzaType" th:field="*{pizzaType}" required>
+                    <option value="" disabled selected>Escolha uma pizza</option>
+                    <option th:each="pizza : ${pizzaTypes}" th:value="${pizza}"
+                            th:text="${pizza.displayName}">Pizza</option>
+                </select>
+
+                <label for="quantity">Quantidade</label>
+                <input id="quantity" type="number" th:field="*{quantity}" min="1" max="10" required>
+
+                <button class="button button-primary" type="submit">Enviar pedido <span aria-hidden="true">→</span></button>
+                <p class="form-note">Pagamento na entrega · até 10 pizzas por pedido</p>
+            </form>
+        </section>
+    </section>
+
+    <section class="orders-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">ACOMPANHE POR AQUI</p>
+                <h2>Pedidos recentes</h2>
+            </div>
+            <span class="orders-count" th:text="${#lists.size(orders)} + ' pedidos'">0 pedidos</span>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(orders)}">
+            <span aria-hidden="true">🍽️</span>
+            <p>Ainda não há pedidos. Que tal começar?</p>
+        </div>
+        <div class="order-list" th:unless="${#lists.isEmpty(orders)}">
+            <article class="order-card" th:each="order : ${orders}">
+                <div class="order-main">
+                    <div class="order-title">
+                        <h3 th:text="${order.customerName}">Cliente</h3>
+                        <span class="status-pill" th:classappend="${'status-' + #strings.toLowerCase(order.status.name())}"
+                              th:text="${order.status.displayName}">Em preparo</span>
+                    </div>
+                    <p th:text="${order.quantity + ' × ' + order.pizzaType.displayName}">1 × Margherita</p>
+                    <p class="order-address" th:text="${order.address}">Endereço</p>
+                    <small th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">13/11/2026 19:00</small>
+                </div>
+                <form th:if="${order.status.next() != null}" th:action="@{/orders/{id}/advance(id=${order.id})}" method="post">
+                    <button class="button button-outline" type="submit"
+                            th:text="${order.status.next().displayName}">Avançar</button>
+                </form>
+                <span class="delivered-mark" th:if="${order.status.next() == null}">✓ Concluído</span>
+            </article>
+        </div>
+    </section>
+</main>
+
+<footer>Feito com carinho e um forno bem quente. <span>Forno da Vila © 2026</span></footer>
+</body>
+</html>
