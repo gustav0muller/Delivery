@@ -99,11 +99,16 @@
                     <p class="order-address" th:text="${order.address}">Endereço</p>
                     <small th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">13/11/2026 19:00</small>
                 </div>
-                <form th:if="${order.status.next() != null}" th:action="@{/orders/{id}/advance(id=${order.id})}" method="post">
+                <form th:if="${order.status.name() == 'RECEIVED' or order.status.name() == 'PREPARING'}"
+                      th:action="@{/orders/{id}/advance(id=${order.id})}" method="post">
                     <button class="button button-outline" type="submit"
                             th:text="${order.status.next().displayName}">Avançar</button>
                 </form>
-                <span class="delivered-mark" th:if="${order.status.next() == null}">✓ Concluído</span>
+                <a class="button button-outline tracking-link"
+                   th:if="${order.status.name() == 'OUT_FOR_DELIVERY' or order.status.name() == 'DELIVERED'}"
+                   th:href="@{/orders/{id}/tracking(id=${order.id})}"
+                   th:text="${order.status.name() == 'DELIVERED' ? 'Ver trajeto' : 'Acompanhar no mapa'}">Acompanhar no mapa</a>
+                <span class="delivered-mark" th:if="${order.status.name() == 'DELIVERED'}">✓ Concluído</span>
             </article>
         </div>
     </section>

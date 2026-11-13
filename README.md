@@ -17,6 +17,8 @@ No Windows:
 
 Abra [http://localhost:8081](http://localhost:8081) no navegador.
 
+Para experimentar o rastreamento, faça um pedido, avance-o até **Saiu para entrega** e clique em **Acompanhar no mapa**. O pizzaiolo se move em uma rota ilustrativa por aproximadamente 30 segundos, e o pedido passa automaticamente para **Entregue** ao chegar.
+
 Para executar os testes:
 
 ```powershell
@@ -29,9 +31,11 @@ Para executar os testes:
 2. O serviço publica `OrderPlacedEvent`.
 3. `OrderEventHandler` recebe o evento e inicia o preparo, mudando o pedido para `PREPARING`.
 4. Cada mudança publica `OrderStatusChangedEvent`; o consumidor registra a atualização.
-5. A interface permite avançar o pedido pelas etapas `PREPARING`, `OUT_FOR_DELIVERY` e `DELIVERED`.
+5. Ao chegar a `OUT_FOR_DELIVERY`, `DeliverySimulation` começa a publicar `DeliveryLocationUpdatedEvent` com posições simuladas uma vez por segundo.
+6. `DeliveryLocationEventHandler` guarda a posição, envia atualizações ao navegador por Server-Sent Events (SSE) e publica a conclusão como status `DELIVERED`.
+7. A tela de rastreamento alterna entre três bairros vetoriais e move o ícone do pizzaiolo de moto pelas ruas da rota selecionada; a simulação dura cerca de 30 segundos.
 
-Os eventos são publicados pelo mecanismo de eventos do Spring. A separação entre serviço, eventos, consumidor e repositório deixa os componentes substituíveis e facilita testes.
+Os eventos são publicados pelo mecanismo de eventos do Spring. A localização é apenas demonstrativa: não usa GPS, serviços de mapas externos ou endereços reais. A separação entre serviço, eventos, consumidores, rastreamento e repositório deixa os componentes substituíveis e facilita testes.
 
 ## Estrutura
 
@@ -40,6 +44,7 @@ Os eventos são publicados pelo mecanismo de eventos do Spring. A separação en
 - `events`: eventos de domínio e seus consumidores.
 - `repository`: contrato e armazenamento em memória.
 - `web`: formulário e rotas MVC.
+- `tracking`: simulação da localização e conexões SSE.
 - `src/main/resources/templates`: interface Thymeleaf.
 - `src/test`: testes unitários e de integração web.
 

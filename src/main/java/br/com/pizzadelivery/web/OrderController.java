@@ -31,9 +31,7 @@ public class OrderController {
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("orders", orderService.findAll());
-        if (!model.containsAttribute("orderForm")) {
-            model.addAttribute("orderForm", new OrderForm());
-        }
+        model.addAttribute("orderForm", new OrderForm());
         return "index";
     }
 
