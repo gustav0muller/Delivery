@@ -1,5 +1,6 @@
 package br.com.pizzadelivery.web;
 
+import br.com.pizzadelivery.chat.CourierChatRegistry;
 import br.com.pizzadelivery.domain.OrderStatus;
 import br.com.pizzadelivery.domain.OrderNotFoundException;
 import br.com.pizzadelivery.domain.PizzaOrder;
@@ -22,13 +23,16 @@ import java.util.UUID;
 public class DeliveryTrackingController {
     private final OrderService orderService;
     private final DeliveryTrackingRegistry trackingRegistry;
+    private final CourierChatRegistry chatRegistry;
     private final MapVariantSelector mapVariantSelector;
 
     public DeliveryTrackingController(OrderService orderService,
                                       DeliveryTrackingRegistry trackingRegistry,
+                                      CourierChatRegistry chatRegistry,
                                       MapVariantSelector mapVariantSelector) {
         this.orderService = orderService;
         this.trackingRegistry = trackingRegistry;
+        this.chatRegistry = chatRegistry;
         this.mapVariantSelector = mapVariantSelector;
     }
 
@@ -38,6 +42,7 @@ public class DeliveryTrackingController {
         model.addAttribute("order", order);
         model.addAttribute("location", trackingRegistry.findLocation(id).orElse(null));
         model.addAttribute("mapVariant", mapVariantSelector.variantFor(id));
+        model.addAttribute("chatMessages", chatRegistry.findMessages(id));
         return "tracking";
     }
 
@@ -46,6 +51,13 @@ public class DeliveryTrackingController {
     public SseEmitter locationEvents(@PathVariable UUID id) {
         findTrackableOrder(id);
         return trackingRegistry.subscribe(id);
+    }
+
+    @GetMapping(path = "/orders/{id}/chat/events", produces = "text/event-stream")
+    @ResponseBody
+    public SseEmitter chatEvents(@PathVariable UUID id) {
+        findTrackableOrder(id);
+        return chatRegistry.subscribe(id);
     }
 
     private PizzaOrder findTrackableOrder(UUID id) {

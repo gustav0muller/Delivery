@@ -200,6 +200,38 @@
     <div class="tracking-message" id="tracking-message" role="status" aria-live="polite">
         Seu pizzaiolo está preparando a moto. A localização aparece assim que a conexão iniciar.
     </div>
+
+    <section class="chat-card" aria-labelledby="chat-title"
+             th:attr="data-chat-enabled=${order.status.name() == 'OUT_FOR_DELIVERY'}">
+        <div class="chat-heading">
+            <div>
+                <p class="eyebrow">CONVERSA DA ENTREGA</p>
+                <h2 id="chat-title">Fale com o entregador</h2>
+            </div>
+            <span class="chat-live-status" id="chat-connection-label">Conectando...</span>
+        </div>
+        <ol class="chat-messages" id="chat-messages" aria-live="polite" aria-relevant="additions">
+            <li class="chat-empty" id="chat-empty" th:if="${#lists.isEmpty(chatMessages)}">
+                As mensagens desta entrega aparecerão aqui.
+            </li>
+            <li th:each="chatMessage : ${chatMessages}"
+                class="chat-message"
+                th:classappend="${chatMessage.sender.name() == 'CUSTOMER'} ? ' chat-message-customer' : ' chat-message-courier'"
+                th:attr="data-message-id=${chatMessage.id}">
+                <strong th:text="${chatMessage.sender.name() == 'CUSTOMER' ? 'Você' : 'Entregador'}">Entregador</strong>
+                <p th:text="${chatMessage.content}">Mensagem da conversa</p>
+                <time th:datetime="${chatMessage.sentAt}"
+                      th:text="${#temporals.format(chatMessage.sentAt, 'HH:mm')}">12:00</time>
+            </li>
+        </ol>
+        <form class="chat-form" id="chat-form" th:attr="data-order-id=${order.id}">
+            <label class="visually-hidden" for="chat-input">Mensagem para o entregador</label>
+            <textarea id="chat-input" name="content" rows="2" maxlength="500"
+                      placeholder="Ex.: pode deixar na portaria?" required></textarea>
+            <button class="button button-primary" id="chat-send" type="submit">Enviar mensagem</button>
+        </form>
+        <p class="chat-feedback" id="chat-feedback" role="status" aria-live="polite"></p>
+    </section>
 </main>
 
 <footer>Feito para quem ama pizza. <span>Slicer © 2026</span></footer>

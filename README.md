@@ -21,7 +21,7 @@ Cadastre uma conta em **Criar conta** ou entre em **Entrar**. A autenticação �
 
 Todos os sabores recebem automaticamente 10% de desconto. Refrigerantes selecionados custam R$ 4,90 com pizza; o resumo do pedido mostra bebidas, desconto e total.
 
-Para experimentar o rastreamento, faça um pedido, avance-o até **Saiu para entrega** e clique em **Acompanhar no mapa**. O pizzaiolo se move em uma rota ilustrativa por aproximadamente 30 segundos, e o pedido passa automaticamente para **Entregue** ao chegar.
+Para experimentar o rastreamento, faça um pedido, avance-o até **Saiu para entrega** e clique em **Acompanhar no mapa**. O pizzaiolo se move em uma rota ilustrativa por aproximadamente 30 segundos, e o pedido passa automaticamente para **Entregue** ao chegar. Durante o trajeto, a tela permite enviar mensagens ao entregador e recebe novas mensagens em tempo real; a conversa é encerrada quando o pedido é entregue.
 
 Para executar os testes:
 
@@ -38,8 +38,9 @@ Para executar os testes:
 5. Ao chegar a `OUT_FOR_DELIVERY`, `DeliverySimulation` começa a publicar `DeliveryLocationUpdatedEvent` com posições simuladas uma vez por segundo.
 6. `DeliveryLocationEventHandler` guarda a posição, envia atualizações ao navegador por Server-Sent Events (SSE) e publica a conclusão como status `DELIVERED`.
 7. A tela de rastreamento alterna entre três bairros vetoriais e move o ícone do pizzaiolo de moto pelas ruas da rota selecionada; a simulação dura cerca de 30 segundos.
+8. Mensagens do cliente ou do entregador são publicadas como `CourierMessageSentEvent`; `CourierMessageEventHandler` guarda o histórico em memória e distribui as mensagens por SSE para a tela de rastreamento.
 
-Os eventos são publicados pelo mecanismo de eventos do Spring. A localização é apenas demonstrativa: não usa GPS, serviços de mapas externos ou endereços reais. A separação entre serviço, eventos, consumidores, rastreamento e repositório deixa os componentes substituíveis e facilita testes.
+Os eventos são publicados pelo mecanismo de eventos do Spring. A localização é apenas demonstrativa: não usa GPS, serviços de mapas externos ou endereços reais. O chat e os pedidos também ficam em memória; o endpoint `POST /orders/{id}/chat/courier-messages` permite que uma integração do entregador publique respostas. A separação entre serviço, eventos, consumidores, rastreamento e repositório deixa os componentes substituíveis e facilita testes.
 
 ## Estrutura
 

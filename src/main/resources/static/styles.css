@@ -365,6 +365,26 @@ footer {
 .tracking-message { margin-top: 16px; padding: 13px 15px; border: 1px solid #e7ecdf; border-radius: 6px; background: #f0f3e9; color: #52674c; text-align: center; font-size: 12px; }
 .tracking-complete .tracking-message { border-color: #dce8da; background: #e8f0e5; color: #456b49; }
 
+.chat-card { margin-top: 19px; padding: 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: 0 12px 38px rgba(52, 43, 26, .04); }
+.chat-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.chat-heading .eyebrow { margin-bottom: 5px; }
+.chat-heading h2 { margin: 0; font-size: 23px; }
+.chat-live-status { color: var(--green); font-size: 11px; }
+.chat-messages { min-height: 110px; max-height: 300px; margin: 18px 0 13px; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; list-style: none; border: 1px solid var(--line); border-radius: 6px; background: #fcfbf7; }
+.chat-empty { margin: auto; color: var(--muted); font-size: 12px; text-align: center; }
+.chat-message { max-width: 82%; padding: 9px 11px; border-radius: 8px; background: #f0f3e9; overflow-wrap: anywhere; }
+.chat-message-customer { align-self: flex-end; background: #f8eadf; }
+.chat-message strong { font-size: 11px; }
+.chat-message p { margin: 4px 0; font-size: 13px; white-space: pre-wrap; }
+.chat-message time { display: block; color: var(--muted); text-align: right; font-size: 9px; }
+.chat-form { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px; }
+.chat-form textarea { width: 100%; min-height: 43px; padding: 10px 11px; resize: vertical; border: 1px solid #e8e2d8; border-radius: 4px; outline: none; color: var(--ink); font: inherit; font-size: 12px; }
+.chat-form textarea:focus { border-color: var(--green); }
+.chat-form .button { width: auto; margin: 0; }
+.chat-form .button:disabled { opacity: .55; cursor: not-allowed; }
+.chat-feedback { min-height: 15px; margin: 8px 0 0; color: var(--muted); font-size: 10px; }
+.visually-hidden { width: 1px; height: 1px; padding: 0; position: absolute; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
 @keyframes live-pulse { 50% { box-shadow: 0 0 0 7px rgba(74, 155, 91, .08); } }
 @keyframes courier-pulse { 50% { opacity: .48; transform: scale(1.16); } }
 
@@ -410,6 +430,9 @@ footer {
     .order-card .button { padding: 0 10px; font-size: 11px; }
     .section-heading h2 { font-size: 25px; }
     .tracking-card { padding: 10px; }
+    .chat-card { padding: 15px; }
+    .chat-form { grid-template-columns: 1fr; }
+    .chat-form .button { width: 100%; }
     .tracking-card-top { align-items: flex-start; }
     .simulation-label { text-align: right; font-size: 8px; }
     .tracking-stats { gap: 15px 8px; padding-right: 3px; padding-left: 3px; }

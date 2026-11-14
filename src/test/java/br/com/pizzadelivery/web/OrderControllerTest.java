@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -115,6 +116,42 @@ class OrderControllerTest {
                 "João", "Avenida Central, 20", PizzaType.MARGHERITA, 1);
 
         mockMvc.perform(get("/orders/{id}/tracking", order.getId()))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void customerAndCourierCanExchangeMessagesDuringTheDelivery() throws Exception {
+        PizzaOrder order = orderService.placeOrder(
+                "João", "Avenida Central, 20", PizzaType.MARGHERITA, 1);
+        orderService.advanceOrder(order.getId());
+
+        mockMvc.perform(post("/orders/{id}/chat/messages", order.getId())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"Pode deixar na portaria?\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.sender").value("CUSTOMER"))
+                .andExpect(jsonPath("$.content").value("Pode deixar na portaria?"));
+
+        mockMvc.perform(post("/orders/{id}/chat/courier-messages", order.getId())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"Claro, aviso quando chegar.\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.sender").value("COURIER"));
+
+        mockMvc.perform(get("/orders/{id}/tracking", order.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Pode deixar na portaria?")))
+                .andExpect(content().string(containsString("Claro, aviso quando chegar.")));
+    }
+
+    @Test
+    void chatRejectsMessagesBeforeTheOrderIsOutForDelivery() throws Exception {
+        PizzaOrder order = orderService.placeOrder(
+                "João", "Avenida Central, 20", PizzaType.MARGHERITA, 1);
+
+        mockMvc.perform(post("/orders/{id}/chat/messages", order.getId())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"Olá\"}"))
                 .andExpect(status().isConflict());
     }
 
