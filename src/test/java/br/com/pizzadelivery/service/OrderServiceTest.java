@@ -1,6 +1,7 @@
 package br.com.pizzadelivery.service;
 
 import br.com.pizzadelivery.domain.OrderStatus;
+import br.com.pizzadelivery.domain.DrinkType;
 import br.com.pizzadelivery.domain.PizzaOrder;
 import br.com.pizzadelivery.domain.PizzaType;
 import br.com.pizzadelivery.events.OrderPlacedEvent;
@@ -9,6 +10,7 @@ import br.com.pizzadelivery.repository.InMemoryOrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,5 +55,23 @@ class OrderServiceTest {
     void rejectsQuantityOutsideAllowedRange() {
         assertThrows(IllegalArgumentException.class,
                 () -> service.placeOrder("Ana", "Rua das Flores, 10", PizzaType.MARGHERITA, 11));
+    }
+
+    @Test
+    void appliesPizzaPromotionAndAddsDrinkToOrderTotal() {
+        PizzaOrder order = service.placeOrder("Ana", "Rua das Flores, 10",
+                PizzaType.MARGHERITA, 2, DrinkType.COCA_COLA, 2);
+
+        assertEquals(0, order.getPizzaSubtotal().compareTo(new BigDecimal("79.80")));
+        assertEquals(0, order.getDiscount().compareTo(new BigDecimal("7.98")));
+        assertEquals(0, order.getDrinkSubtotal().compareTo(new BigDecimal("9.80")));
+        assertEquals(0, order.getTotalPrice().compareTo(new BigDecimal("81.62")));
+    }
+
+    @Test
+    void rejectsDrinkQuantityWithoutASelectedDrink() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.placeOrder("Ana", "Rua das Flores, 10",
+                        PizzaType.MARGHERITA, 1, null, 1));
     }
 }

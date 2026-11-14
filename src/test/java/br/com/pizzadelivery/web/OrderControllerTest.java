@@ -138,4 +138,43 @@ class OrderControllerTest {
 
         org.junit.jupiter.api.Assertions.assertEquals(ordersBefore, orderService.findAll().size());
     }
+
+    @Test
+    void rendersLoginAndRegistrationPages() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Entre na sua conta.")));
+
+        mockMvc.perform(get("/cadastro"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Uma conta. Muitas pizzas.")));
+    }
+
+    @Test
+    void registrationCreatesASessionAndLoginWorksAfterLogout() throws Exception {
+        String email = "cliente-" + java.util.UUID.randomUUID() + "@example.com";
+        MvcResult registration = mockMvc.perform(post("/cadastro")
+                        .param("displayName", "Ana Slicer")
+                        .param("email", email)
+                        .param("password", "pizza1234"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"))
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) registration.getRequest().getSession(false);
+        org.junit.jupiter.api.Assertions.assertNotNull(session);
+        mockMvc.perform(get("/").session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Olá, <strong>Ana Slicer</strong>")));
+
+        mockMvc.perform(post("/logout").session(session))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
+
+        mockMvc.perform(post("/login")
+                        .param("email", email.toUpperCase(java.util.Locale.ROOT))
+                        .param("password", "pizza1234"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
+    }
 }

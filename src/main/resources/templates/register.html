@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Criar conta | Slicer</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body class="account-page">
+<header class="topbar">
+    <div th:replace="~{fragments/brand :: brand}"></div>
+    <a class="back-link" href="/">← Voltar ao cardápio</a>
+</header>
+
+<main class="account-main">
+    <section class="account-card">
+        <p class="eyebrow">ENTRE PARA O TIME DO MONSTRINHO</p>
+        <h1>Uma conta. Muitas pizzas.</h1>
+        <p class="account-copy">Crie sua conta e acompanhe seus pedidos.</p>
+        <div class="notice notice-error" th:if="${error}" th:text="${error}" role="alert"></div>
+        <form th:action="@{/cadastro}" th:object="${registrationForm}" method="post" class="account-form">
+            <label for="displayName">Como podemos te chamar?</label>
+            <input id="displayName" type="text" th:field="*{displayName}" autocomplete="name"
+                   placeholder="Seu nome" maxlength="80" required>
+            <label for="email">E-mail</label>
+            <input id="email" type="email" th:field="*{email}" autocomplete="email"
+                   placeholder="voce@email.com" maxlength="120" required>
+            <label for="password">Crie uma senha</label>
+            <input id="password" type="password" th:field="*{password}" autocomplete="new-password"
+                   placeholder="Pelo menos 8 caracteres" minlength="8" maxlength="72" required>
+            <button class="button button-primary" type="submit">Criar minha conta <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="account-switch">Já tem uma conta? <a href="/login">Entrar</a></p>
+    </section>
+</main>
+
+<footer>Feito para quem ama pizza. <span>Slicer © 2026</span></footer>
+</body>
+</html>

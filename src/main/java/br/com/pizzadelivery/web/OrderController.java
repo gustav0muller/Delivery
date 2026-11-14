@@ -1,7 +1,10 @@
 package br.com.pizzadelivery.web;
 
 import br.com.pizzadelivery.domain.OrderNotFoundException;
+import br.com.pizzadelivery.domain.DrinkType;
 import br.com.pizzadelivery.domain.PizzaType;
+import br.com.pizzadelivery.domain.Promotion;
+import br.com.pizzadelivery.auth.AccountSession;
 import br.com.pizzadelivery.service.OrderService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.UUID;
 
@@ -28,10 +32,25 @@ public class OrderController {
         return PizzaType.values();
     }
 
+    @ModelAttribute("drinkTypes")
+    public DrinkType[] drinkTypes() {
+        return DrinkType.values();
+    }
+
+    @ModelAttribute("promotions")
+    public Promotion[] promotions() {
+        return Promotion.values();
+    }
+
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(Model model, HttpSession session) {
         model.addAttribute("orders", orderService.findAll());
-        model.addAttribute("orderForm", new OrderForm());
+        OrderForm form = new OrderForm();
+        Object signedInName = session.getAttribute(AccountSession.DISPLAY_NAME);
+        if (signedInName instanceof String) {
+            form.setCustomerName((String) signedInName);
+        }
+        model.addAttribute("orderForm", form);
         return "index";
     }
 
@@ -42,9 +61,13 @@ public class OrderController {
             redirectAttributes.addFlashAttribute("error", "Confira os dados do pedido e tente novamente.");
             return "redirect:/";
         }
+        if (form.getDrinkQuantity() > 0 && form.getDrinkType() == null) {
+            redirectAttributes.addFlashAttribute("error", "Selecione uma bebida ou deixe a quantidade em zero.");
+            return "redirect:/";
+        }
 
         orderService.placeOrder(form.getCustomerName(), form.getAddress(),
-                form.getPizzaType(), form.getQuantity());
+                form.getPizzaType(), form.getQuantity(), form.getDrinkType(), form.getDrinkQuantity());
         redirectAttributes.addFlashAttribute("success", "Pedido enviado para a cozinha!");
         return "redirect:/";
     }

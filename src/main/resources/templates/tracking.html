@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Rastreamento | Forno da Vila</title>
+    <title>Rastreamento | Slicer</title>
     <link rel="stylesheet" th:href="@{/styles.css}">
     <script th:src="@{/tracking.js}" defer></script>
 </head>
 <body>
 <header class="topbar">
-    <a class="brand" href="/">FORNO<span> DA VILA</span></a>
-    <a class="back-link" href="/">← Voltar aos pedidos</a>
+    <div th:replace="~{fragments/brand :: brand}"></div>
+    <div class="topbar-actions">
+        <a class="back-link" href="/">← Voltar aos pedidos</a>
+        <div th:replace="~{fragments/account-nav :: accountNav}"></div>
+    </div>
 </header>
 
 <main class="tracking-page" id="tracking-app"
@@ -199,6 +202,6 @@
     </div>
 </main>
 
-<footer>Feito com carinho e um forno bem quente. <span>Forno da Vila © 2026</span></footer>
+<footer>Feito para quem ama pizza. <span>Slicer © 2026</span></footer>
 </body>
 </html>

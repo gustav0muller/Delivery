@@ -1,5 +1,6 @@
 package br.com.pizzadelivery.web;
 
+import br.com.pizzadelivery.domain.DrinkType;
 import br.com.pizzadelivery.domain.PizzaType;
 
 import javax.validation.constraints.Max;
@@ -23,6 +24,12 @@ public class OrderForm {
     @Min(1)
     @Max(10)
     private int quantity = 1;
+
+    private DrinkType drinkType;
+
+    @Min(0)
+    @Max(10)
+    private int drinkQuantity;
 
     public String getCustomerName() {
         return customerName;
@@ -54,5 +61,21 @@ public class OrderForm {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public DrinkType getDrinkType() {
+        return drinkType;
+    }
+
+    public void setDrinkType(DrinkType drinkType) {
+        this.drinkType = drinkType;
+    }
+
+    public int getDrinkQuantity() {
+        return drinkQuantity;
+    }
+
+    public void setDrinkQuantity(int drinkQuantity) {
+        this.drinkQuantity = drinkQuantity;
     }
 }

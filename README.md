@@ -1,6 +1,6 @@
-# Forno da Vila — Pizza Delivery
+# Slicer — Pizza Delivery
 
-Aplicação web de delivery de pizza construída em Java com Spring Boot e Gradle. O fluxo de pedidos usa eventos de domínio para separar a criação do pedido do início do preparo.
+Aplicação web de delivery de pizza construída em Java com Spring Boot e Gradle. O fluxo de pedidos usa eventos de domínio para separar a criação do pedido do início do preparo. A interface inclui cardápio, bebidas, promoções, cadastro e login.
 
 ## Requisitos
 
@@ -16,6 +16,10 @@ No Windows:
 ```
 
 Abra [http://localhost:8081](http://localhost:8081) no navegador.
+
+Cadastre uma conta em **Criar conta** ou entre em **Entrar**. A autenticação é demonstrativa: usuários ficam em memória e são perdidos ao reiniciar a aplicação. As senhas são armazenadas como hashes PBKDF2 com salt aleatório; o checkout não exige login.
+
+Todos os sabores recebem automaticamente 10% de desconto. Refrigerantes selecionados custam R$ 4,90 com pizza; o resumo do pedido mostra bebidas, desconto e total.
 
 Para experimentar o rastreamento, faça um pedido, avance-o até **Saiu para entrega** e clique em **Acompanhar no mapa**. O pizzaiolo se move em uma rota ilustrativa por aproximadamente 30 segundos, e o pedido passa automaticamente para **Entregue** ao chegar.
 
@@ -39,7 +43,8 @@ Os eventos são publicados pelo mecanismo de eventos do Spring. A localização 
 
 ## Estrutura
 
-- `domain`: pedidos, sabores e estados válidos.
+- `domain`: pedidos, sabores, bebidas, promoções e estados válidos.
+- `auth`: cadastro e autenticação em memória.
 - `service`: regras de criação e transição dos pedidos.
 - `events`: eventos de domínio e seus consumidores.
 - `repository`: contrato e armazenamento em memória.
