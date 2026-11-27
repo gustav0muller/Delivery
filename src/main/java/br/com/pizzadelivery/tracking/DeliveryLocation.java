@@ -1,5 +1,8 @@
 package br.com.pizzadelivery.tracking;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -13,7 +16,10 @@ public class DeliveryLocation {
     private final double distanceKm;
     private final Instant updatedAt;
 
-    public DeliveryLocation(UUID orderId, double progress, Instant updatedAt) {
+    @JsonCreator
+    public DeliveryLocation(@JsonProperty("orderId") UUID orderId,
+                            @JsonProperty("progress") double progress,
+                            @JsonProperty("updatedAt") Instant updatedAt) {
         this.orderId = orderId;
         this.progress = Math.max(0, Math.min(100, progress));
         this.etaSeconds = (int) Math.ceil(

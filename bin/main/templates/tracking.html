@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rastreamento | Slicer</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+    <script th:src="@{/tracking.js}" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <div th:replace="~{fragments/brand :: brand}"></div>
+    <div class="topbar-actions">
+        <a class="back-link" href="/">← Voltar aos pedidos</a>
+        <div th:replace="~{fragments/account-nav :: accountNav}"></div>
+    </div>
+</header>
+
+<main class="tracking-page" id="tracking-app"
+      th:attr="data-order-id=${order.id},data-map-variant=${mapVariant},data-progress=${location != null ? location.progress : 0},data-eta=${location != null ? location.etaSeconds : 30},data-distance=${location != null ? location.distanceKm : 2.4},data-completed=${location != null ? location.completed : false}">
+    <section class="tracking-heading">
+        <p class="eyebrow">ACOMPANHAMENTO DO PEDIDO</p>
+        <h1 id="tracking-title">Seu pedido está a caminho.</h1>
+        <p class="tracking-summary">
+            <strong th:text="${order.pizzaType.displayName + ' · ' + order.quantity + ' pizza(s)'}">Pepperoni · 1 pizza</strong>
+            <span>para</span>
+            <span th:text="${order.customerName}">Cliente</span>
+            <span class="summary-dot">·</span>
+            <span th:text="${order.address}">Endereço</span>
+        </p>
+    </section>
+
+    <section class="tracking-card" aria-label="Mapa de localização simulada">
+        <div class="tracking-card-top">
+            <div class="live-indicator" id="connection-state">
+                <span class="live-dot"></span>
+                <span id="connection-label">Conectando ao entregador</span>
+            </div>
+            <span class="simulation-label">SIMULAÇÃO EM TEMPO REAL</span>
+        </div>
+
+        <div class="map-frame">
+            <svg class="delivery-map" id="delivery-map" viewBox="0 0 760 380"
+                 role="img" aria-labelledby="map-title map-description">
+                <title id="map-title">Mapa ilustrativo do caminho entre a pizzaria e sua casa</title>
+                <desc id="map-description">O motoboy pizzaiolo se desloca em tempo real por uma rota simulada.</desc>
+                <rect width="760" height="380" rx="14" class="map-ground"/>
+                <g transform="translate(0 -25) scale(1 .9)">
+
+                <g th:if="${mapVariant == 0}" class="map-layout">
+                    <path d="M20 24h150l38 44-16 62H20z M267 27h121v92h-97l-24-39z
+                             M458 25h125v91h-98l-27-39z M622 28h118v121h-93l-25-38z
+                             M23 190h133l38 45-23 57H20z M270 180h112l37 48-18 65h-131l22-48z
+                             M463 181h111l30 48-18 68h-140l21-48z M629 197h110v105h-99l-22-47z
+                             M22 370h146l35 45H22z M278 369h115l34 46H256z M474 370h111l33 45H453z"
+                          class="map-block"/>
+                    <path d="M48 154c33-31 90-29 121 4 26 27 25 57 9 83-17 28-44 30-71 21-40-12-85-60-59-108z"
+                          class="map-park"/>
+                    <path d="M20 90H740 M20 150H740 M20 265H740 M20 350H740
+                             M150 20V420 M230 20V420 M330 20V420 M415 20V420 M500 20V420 M580 20V420 M690 20V420"
+                          class="map-street-detail"/>
+                    <path d="M82 350H210Q230 350 230 330V285Q230 265 250 265H395Q415 265 415 245V170Q415 150 435 150H560Q580 150 580 130V110Q580 90 600 90H680"
+                          class="map-street route-road"/>
+                    <path id="delivery-route-0" d="M82 350H210Q230 350 230 330V285Q230 265 250 265H395Q415 265 415 245V170Q415 150 435 150H560Q580 150 580 130V110Q580 90 600 90H680"
+                          class="route-shadow"/>
+                    <path d="M82 350H210Q230 350 230 330V285Q230 265 250 265H395Q415 265 415 245V170Q415 150 435 150H560Q580 150 580 130V110Q580 90 600 90H680"
+                          class="route-line"/>
+                    <text x="290" y="137" class="map-street-label">RUA DAS FLORES</text>
+                    <text x="430" y="287" class="map-street-label">AV. DO FORNO</text>
+                    <text x="72" y="245" class="map-area-label">PRAÇA CENTRAL</text>
+                    <g class="map-place" transform="translate(82 350)">
+                        <circle r="19" class="place-halo"/>
+                        <circle r="13" class="place-pin shop-pin"/>
+                        <text y="5" text-anchor="middle" class="place-emoji">🍕</text>
+                        <rect x="-29" y="24" width="93" height="23" rx="11" class="place-label-bg"/>
+                        <text x="17" y="39" text-anchor="middle" class="place-label">PIZZARIA</text>
+                    </g>
+                    <g class="map-place" transform="translate(680 90)">
+                        <circle r="19" class="place-halo"/>
+                        <circle r="13" class="place-pin home-pin"/>
+                        <path d="M-7 0l7-6 7 6v8H-7z M-2 8V3h4v5" class="house-icon"/>
+                        <rect x="-27" y="-40" width="68" height="22" rx="11" class="place-label-bg"/>
+                        <text x="7" y="-25" text-anchor="middle" class="place-label">SUA CASA</text>
+                    </g>
+                </g>
+
+                <g th:if="${mapVariant == 1}" class="map-layout">
+                    <path d="M20 24h119l34 46-15 51H20z M230 26h120l35 47-20 52H229z
+                             M428 24h130l33 50-17 58H405z M624 26h116v122h-94l-22-39z
+                             M22 218h128l34 47-22 61H20z M228 223h132l29 49-24 64H208z
+                             M430 222h120l35 48-22 66H407z M630 215h110v105h-93l-22-43z
+                             M22 371h132l37 44H20z M239 370h126l36 45H217z M439 370h132l33 45H417z"
+                          class="map-block"/>
+                    <path d="M500 34c45-23 103-5 116 34 14 43-25 91-67 92-47 1-83-33-76-76 3-22 12-39 27-50z"
+                          class="map-park"/>
+                    <path d="M20 80H740 M20 200H740 M20 305H740 M20 360H740
+                             M150 20V420 M240 20V420 M350 20V420 M450 20V420 M540 20V420 M610 20V420 M700 20V420"
+                          class="map-street-detail"/>
+                    <path d="M85 80H220Q240 80 240 100V180Q240 200 260 200H430Q450 200 450 220V285Q450 305 470 305H590Q610 305 610 325V360H680"
+                          class="map-street route-road"/>
+                    <path id="delivery-route-1" d="M85 80H220Q240 80 240 100V180Q240 200 260 200H430Q450 200 450 220V285Q450 305 470 305H590Q610 305 610 325V360H680"
+                          class="route-shadow"/>
+                    <path d="M85 80H220Q240 80 240 100V180Q240 200 260 200H430Q450 200 450 220V285Q450 305 470 305H590Q610 305 610 325V360H680"
+                          class="route-line"/>
+                    <text x="287" y="185" class="map-street-label">RUA HORIZONTE</text>
+                    <text x="477" y="287" class="map-street-label">RUA DAS PALMEIRAS</text>
+                    <text x="515" y="100" class="map-area-label">JARDIM DO BAIRRO</text>
+                    <g class="map-place" transform="translate(85 80)">
+                        <circle r="19" class="place-halo"/>
+                        <circle r="13" class="place-pin shop-pin"/>
+                        <text y="5" text-anchor="middle" class="place-emoji">🍕</text>
+                        <rect x="-29" y="24" width="93" height="23" rx="11" class="place-label-bg"/>
+                        <text x="17" y="39" text-anchor="middle" class="place-label">PIZZARIA</text>
+                    </g>
+                    <g class="map-place" transform="translate(680 360)">
+                        <circle r="19" class="place-halo"/>
+                        <circle r="13" class="place-pin home-pin"/>
+                        <path d="M-7 0l7-6 7 6v8H-7z M-2 8V3h4v5" class="house-icon"/>
+                        <rect x="-27" y="-40" width="68" height="22" rx="11" class="place-label-bg"/>
+                        <text x="7" y="-25" text-anchor="middle" class="place-label">SUA CASA</text>
+                    </g>
+                </g>
+
+                <g th:if="${mapVariant == 2}" class="map-layout">
+                    <path d="M20 25h135l38 43-19 59H20z M249 24h124l34 47-20 61H234z
+                             M444 25h120l38 45-21 63H422z M627 24h113v125h-95l-21-42z
+                             M20 196h129l36 46-21 62H20z M247 192h125l38 52-21 61H228z
+                             M444 194h115l39 48-23 62H420z M625 198h115v112h-96l-23-44z
+                             M20 372h132l40 43H20z M246 372h126l38 43H225z M444 372h119l39 43H421z"
+                          class="map-block"/>
+                    <path d="M544 186c27-32 86-44 122-14 36 29 35 75 4 103-29 26-86 25-113-4-28-30-37-58-13-85z"
+                          class="map-park"/>
+                    <path d="M20 85H740 M20 170H740 M20 265H740 M20 355H740
+                             M125 20V420 M195 20V420 M285 20V420 M360 20V420 M445 20V420 M500 20V420 M610 20V420 M700 20V420"
+                          class="map-street-detail"/>
+                    <path d="M85 355H175Q195 355 195 335V285Q195 265 215 265H340Q360 265 360 245V190Q360 170 380 170H480Q500 170 500 150V105Q500 85 520 85H680"
+                          class="map-street route-road"/>
+                    <path id="delivery-route-2" d="M85 355H175Q195 355 195 335V285Q195 265 215 265H340Q360 265 360 245V190Q360 170 380 170H480Q500 170 500 150V105Q500 85 520 85H680"
+                          class="route-shadow"/>
+                    <path d="M85 355H175Q195 355 195 335V285Q195 265 215 265H340Q360 265 360 245V190Q360 170 380 170H480Q500 170 500 150V105Q500 85 520 85H680"
+                          class="route-line"/>
+                    <text x="254" y="247" class="map-street-label">AV. DAS ACÁCIAS</text>
+                    <text x="390" y="152" class="map-street-label">RUA DO MERCADO</text>
+                    <text x="570" y="239" class="map-area-label">PARQUE DAS OLIVEIRAS</text>
+                    <g class="map-place" transform="translate(85 355)">
+                        <circle r="19" class="place-halo"/>
+                        <circle r="13" class="place-pin shop-pin"/>
+                        <text y="5" text-anchor="middle" class="place-emoji">🍕</text>
+                        <rect x="-29" y="24" width="93" height="23" rx="11" class="place-label-bg"/>
+                        <text x="17" y="39" text-anchor="middle" class="place-label">PIZZARIA</text>
+                    </g>
+                    <g class="map-place" transform="translate(680 85)">
+                        <circle r="19" class="place-halo"/>
+                        <circle r="13" class="place-pin home-pin"/>
+                        <path d="M-7 0l7-6 7 6v8H-7z M-2 8V3h4v5" class="house-icon"/>
+                        <rect x="-27" y="-40" width="68" height="22" rx="11" class="place-label-bg"/>
+                        <text x="7" y="-25" text-anchor="middle" class="place-label">SUA CASA</text>
+                    </g>
+                </g>
+
+                <g id="courier" class="courier-marker" transform="translate(82 350)"
+                   aria-label="Pizzaiolo entregador em uma moto">
+                    <circle r="31" class="courier-halo"/>
+                    <circle r="26" class="courier-disc"/>
+                    <rect x="-23" y="-14" width="15" height="13" rx="3" class="delivery-bag"/>
+                    <path d="M-20-11l7-4v7z" class="bag-pizza"/>
+                    <path d="M-12 11l5-11h12l9 11H-12zm12-11 3-7h7l4 4" class="bike-frame"/>
+                    <circle cx="-12" cy="11" r="5.2" class="bike-wheel"/>
+                    <circle cx="14" cy="11" r="5.2" class="bike-wheel"/>
+                    <circle cx="-12" cy="11" r="1.7" class="bike-hub"/>
+                    <circle cx="14" cy="11" r="1.7" class="bike-hub"/>
+                    <path d="M-5-3l1 9q7 5 13 2l-3-11z" class="rider-body"/>
+                    <path d="M-3 2l3 5h5l-1-5z" class="rider-apron"/>
+                    <path d="M-5-9q0-7 6-7t6 7v4H-5z" class="rider-face"/>
+                    <path d="M-7-15q-3-5 2-7 3-4 7 0 6 0 5 7z" class="chef-hat"/>
+                    <path d="M-3-8v1m6-1v1" class="rider-eyes"/>
+                    <path d="M-2-4q2 2 4 0" class="rider-smile"/>
+                </g>
+                </g>
+            </svg>
+        </div>
+
+        <div class="tracking-stats">
+            <div class="tracking-stat">
+                <span class="stat-icon" aria-hidden="true">⌁</span>
+                <div><small>PREVISÃO SIMULADA</small><strong id="eta-label">Calculando...</strong></div>
+            </div>
+            <div class="tracking-stat">
+                <span class="stat-icon" aria-hidden="true">↗</span>
+                <div><small>DISTÂNCIA ATÉ VOCÊ</small><strong id="distance-label">Calculando...</strong></div>
+            </div>
+            <div class="tracking-stat tracking-stat-progress">
+                <div class="progress-label"><small>CAMINHO PERCORRIDO</small><strong id="progress-label">0%</strong></div>
+                <div class="progress-track"><span id="progress-bar"></span></div>
+            </div>
+        </div>
+    </section>
+
+    <p class="map-disclaimer">Mapa ilustrativo com trajeto e localização simulados. Nenhum GPS ou endereço real é consultado.</p>
+    <div class="tracking-message" id="tracking-message" role="status" aria-live="polite">
+        Seu pizzaiolo está preparando a moto. A localização aparece assim que a conexão iniciar.
+    </div>
+
+    <section class="chat-card" aria-labelledby="chat-title"
+             th:attr="data-chat-enabled=${order.status.name() == 'OUT_FOR_DELIVERY'}">
+        <div class="chat-heading">
+            <div>
+                <p class="eyebrow">CONVERSA DA ENTREGA</p>
+                <h2 id="chat-title">Fale com o entregador</h2>
+            </div>
+            <span class="chat-live-status" id="chat-connection-label">Conectando...</span>
+        </div>
+        <ol class="chat-messages" id="chat-messages" aria-live="polite" aria-relevant="additions">
+            <li class="chat-empty" id="chat-empty" th:if="${#lists.isEmpty(chatMessages)}">
+                As mensagens desta entrega aparecerão aqui.
+            </li>
+            <li th:each="chatMessage : ${chatMessages}"
+                class="chat-message"
+                th:classappend="${chatMessage.sender.name() == 'CUSTOMER'} ? ' chat-message-customer' : ' chat-message-courier'"
+                th:attr="data-message-id=${chatMessage.id}">
+                <strong th:text="${chatMessage.sender.name() == 'CUSTOMER' ? 'Você' : 'Entregador'}">Entregador</strong>
+                <p th:text="${chatMessage.content}">Mensagem da conversa</p>
+                <time th:datetime="${chatMessage.sentAt}"
+                      th:text="${#temporals.format(chatMessage.sentAt, 'HH:mm')}">12:00</time>
+            </li>
+        </ol>
+        <form class="chat-form" id="chat-form" th:attr="data-order-id=${order.id}">
+            <label class="visually-hidden" for="chat-input">Mensagem para o entregador</label>
+            <textarea id="chat-input" name="content" rows="2" maxlength="500"
+                      placeholder="Ex.: pode deixar na portaria?" required></textarea>
+            <button class="button button-primary" id="chat-send" type="submit">Enviar mensagem</button>
+        </form>
+        <p class="chat-feedback" id="chat-feedback" role="status" aria-live="polite"></p>
+    </section>
+</main>
+
+<footer>Feito para quem ama pizza. <span>Slicer © 2026</span></footer>
+</body>
+</html>

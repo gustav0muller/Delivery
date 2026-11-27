@@ -17,6 +17,21 @@ No Windows:
 
 Abra [http://localhost:8081](http://localhost:8081) no navegador.
 
+### RabbitMQ
+
+O projeto publica e consome eventos pelo RabbitMQ. Para iniciar a infraestrutura:
+
+```powershell
+docker compose up -d
+.\gradlew.bat bootRun
+```
+
+O painel administrativo ficará disponível em [http://localhost:15672](http://localhost:15672),
+com usuário e senha `pizzadelivery`.
+
+Os eventos usam a exchange topic `pizzadelivery.events`. Filas com falha são reprocessadas
+até três vezes e, depois disso, encaminhadas para `pizzadelivery.dead-letter`.
+
 Cadastre uma conta em **Criar conta** ou entre em **Entrar**. A autenticação é demonstrativa: usuários ficam em memória e são perdidos ao reiniciar a aplicação. As senhas são armazenadas como hashes PBKDF2 com salt aleatório; o checkout não exige login.
 
 Todos os sabores recebem automaticamente 10% de desconto. Refrigerantes selecionados custam R$ 4,90 com pizza; o resumo do pedido mostra bebidas, desconto e total.

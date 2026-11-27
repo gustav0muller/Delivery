@@ -1,6 +1,7 @@
 package br.com.pizzadelivery.events;
 
 import br.com.pizzadelivery.chat.CourierChatRegistry;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ public class CourierMessageEventHandler {
     }
 
     @EventListener
+    @RabbitListener(queues = RabbitEventConfig.COURIER_MESSAGE_QUEUE)
     public void onMessageSent(CourierMessageSentEvent event) {
         chatRegistry.publish(event.getMessage());
     }

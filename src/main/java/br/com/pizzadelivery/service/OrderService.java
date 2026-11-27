@@ -64,6 +64,9 @@ public class OrderService {
 
     public synchronized PizzaOrder changeStatus(UUID orderId, OrderStatus newStatus) {
         PizzaOrder order = getOrder(orderId);
+        if (order.getStatus() == newStatus) {
+            return order;
+        }
         if (newStatus == null || order.getStatus().next() != newStatus) {
             throw new IllegalStateException("Transição de status inválida.");
         }
