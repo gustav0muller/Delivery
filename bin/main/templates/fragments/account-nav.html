@@ -1,0 +1,12 @@
+<nav th:fragment="accountNav" class="account-nav" aria-label="Conta">
+    <span class="account-greeting" th:if="${signedInName}">
+        Olá, <strong th:text="${signedInName}">cliente</strong>
+    </span>
+    <form th:if="${signedInName}" th:action="@{/logout}" method="post">
+        <button class="text-button" type="submit">Sair</button>
+    </form>
+    <div class="account-links" th:unless="${signedInName}">
+        <a href="/login">Entrar</a>
+        <a class="account-signup" href="/cadastro">Criar conta</a>
+    </div>
+</nav>

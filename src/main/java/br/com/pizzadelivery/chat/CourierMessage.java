@@ -1,5 +1,8 @@
 package br.com.pizzadelivery.chat;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +13,12 @@ public class CourierMessage {
     private final String content;
     private final Instant sentAt;
 
-    public CourierMessage(UUID id, UUID orderId, ChatSender sender, String content, Instant sentAt) {
+    @JsonCreator
+    public CourierMessage(@JsonProperty("id") UUID id,
+                          @JsonProperty("orderId") UUID orderId,
+                          @JsonProperty("sender") ChatSender sender,
+                          @JsonProperty("content") String content,
+                          @JsonProperty("sentAt") Instant sentAt) {
         this.id = id;
         this.orderId = orderId;
         this.sender = sender;

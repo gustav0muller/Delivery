@@ -5,6 +5,7 @@ import br.com.pizzadelivery.domain.PizzaOrder;
 import br.com.pizzadelivery.service.OrderService;
 import br.com.pizzadelivery.tracking.DeliveryLocation;
 import br.com.pizzadelivery.tracking.DeliveryTrackingRegistry;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ public class DeliveryLocationEventHandler {
     }
 
     @EventListener
+    @RabbitListener(queues = RabbitEventConfig.DELIVERY_LOCATION_QUEUE)
     public void onLocationUpdated(DeliveryLocationUpdatedEvent event) {
         DeliveryLocation location = event.getLocation();
         trackingRegistry.publish(location);

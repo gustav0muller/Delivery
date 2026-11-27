@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Slicer | Pizza delivery</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+    <script th:src="@{/order-form.js}" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <div th:replace="~{fragments/brand :: brand}"></div>
+    <span class="topbar-note">O monstrinho que devora sua fome.</span>
+    <div th:replace="~{fragments/account-nav :: accountNav}"></div>
+</header>
+
+<main>
+    <section class="hero">
+        <div>
+            <p class="eyebrow">MASSA ARTESANAL · FOME DE MONSTRO</p>
+            <h1>A Slicer chegou<br>para matar sua fome.</h1>
+            <p class="hero-copy">Pizzas caprichadas, combos e mordidas de felicidade.</p>
+            <a class="button button-light" href="#pedido">Fazer meu pedido <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+            <span class="hero-sun"></span>
+            <span class="pizza pizza-large">🍕</span>
+            <span class="hero-spark spark-one">✳</span>
+            <span class="hero-spark spark-two">✦</span>
+        </div>
+    </section>
+
+    <section class="promotions-section" aria-label="Promoções da Slicer">
+        <div class="section-heading promo-heading">
+            <div>
+                <p class="eyebrow">OFERTAS QUE DÃO ÁGUA NA BOCA</p>
+                <h2>Promoções do monstrinho</h2>
+            </div>
+            <span class="promo-mascot" aria-hidden="true">👾🍕</span>
+        </div>
+        <div class="promotion-list">
+            <article class="promotion-card" th:each="promotion : ${promotions}">
+                <span class="promotion-tag">PROMO SLICER</span>
+                <h3 th:text="${promotion.displayName}">Mordida de inauguração</h3>
+                <p th:text="${promotion.description}">10% OFF em todas as pizzas</p>
+                <span class="promotion-note">Desconto aplicado automaticamente no pedido</span>
+            </article>
+            <article class="promotion-card promotion-combo">
+                <span class="promotion-tag">PREÇO DE COMBO</span>
+                <h3>Bebida gelada no combo</h3>
+                <p>Refrigerantes selecionados por <strong>R$ 4,90</strong> com qualquer pizza.</p>
+                <span class="promotion-note">Escolha Coca-Cola, Coca-Cola Zero ou Guaraná</span>
+            </article>
+        </div>
+    </section>
+
+    <div class="notice notice-success" th:if="${success}" th:text="${success}" role="status"></div>
+    <div class="notice notice-error" th:if="${error}" th:text="${error}" role="alert"></div>
+
+    <section class="content-grid" id="pedido">
+        <div class="menu-section">
+            <p class="eyebrow">SAINDO DA BOCA DO MONSTRINHO</p>
+            <h2>Nosso cardápio</h2>
+            <div class="menu-list">
+                <article class="menu-item" th:each="pizza : ${pizzaTypes}">
+                    <div class="menu-icon" aria-hidden="true">🍕</div>
+                    <div class="menu-description">
+                        <h3 th:text="${pizza.displayName}">Pizza</h3>
+                        <p th:text="${pizza.description}">Assada na hora, massa de longa fermentação.</p>
+                    </div>
+                    <strong class="price">
+                        R$ <span th:text="${#numbers.formatDecimal(pizza.price, 1, 'POINT', 2, 'COMMA')}">39,90</span>
+                        <small>−10% na promoção</small>
+                    </strong>
+                </article>
+            </div>
+        </div>
+
+        <section class="order-panel">
+            <p class="eyebrow">É SÓ PREENCHER</p>
+            <h2>Monte seu pedido</h2>
+            <form th:action="@{/orders}" th:object="${orderForm}" method="post">
+                <label for="customerName">Seu nome</label>
+                <input id="customerName" type="text" th:field="*{customerName}" maxlength="80"
+                       placeholder="Como podemos te chamar?" required>
+
+                <label for="address">Endereço de entrega</label>
+                <input id="address" type="text" th:field="*{address}" maxlength="200"
+                       placeholder="Rua, número e complemento" required>
+
+                <label for="pizzaType">Sabor</label>
+                <select id="pizzaType" th:field="*{pizzaType}" required>
+                    <option value="" disabled selected>Escolha uma pizza</option>
+                    <option th:each="pizza : ${pizzaTypes}" th:value="${pizza}" th:data-price="${pizza.price}"
+                            th:text="${pizza.displayName}">Pizza</option>
+                </select>
+
+                <label for="quantity">Quantidade</label>
+                <input id="quantity" type="number" th:field="*{quantity}" min="1" max="10" required>
+
+                <label for="drinkType">Bebida <span class="optional-label">opcional</span></label>
+                <select id="drinkType" th:field="*{drinkType}">
+                    <option value="">Sem bebida</option>
+                    <option th:each="drink : ${drinkTypes}" th:value="${drink}" th:data-price="${drink.price}"
+                            th:text="${drink.displayName + ' · R$ ' + #numbers.formatDecimal(drink.price, 1, 'POINT', 2, 'COMMA') + (drink.comboPrice ? ' · combo' : '')}">
+                        Coca-Cola 350 ml · R$ 4,90
+                    </option>
+                </select>
+
+                <label for="drinkQuantity">Quantidade de bebidas</label>
+                <input id="drinkQuantity" type="number" th:field="*{drinkQuantity}" min="0" max="10">
+
+                <p class="order-estimate">Total com promoção: <strong id="estimate-total">Selecione uma pizza</strong></p>
+                <button class="button button-primary" type="submit">Pedir na Slicer <span aria-hidden="true">→</span></button>
+                <p class="form-note">10% OFF nas pizzas · bebidas no preço do cardápio</p>
+            </form>
+        </section>
+    </section>
+
+    <section class="orders-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">ACOMPANHE POR AQUI</p>
+                <h2>Pedidos recentes</h2>
+            </div>
+            <span class="orders-count" th:text="${#lists.size(orders)} + ' pedidos'">0 pedidos</span>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(orders)}">
+            <span aria-hidden="true">🍽️</span>
+            <p>Ainda não há pedidos. Que tal começar?</p>
+        </div>
+        <div class="order-list" th:unless="${#lists.isEmpty(orders)}">
+            <article class="order-card" th:each="order : ${orders}">
+                <div class="order-main">
+                    <div class="order-title">
+                        <h3 th:text="${order.customerName}">Cliente</h3>
+                        <span class="status-pill" th:classappend="${'status-' + #strings.toLowerCase(order.status.name())}"
+                              th:text="${order.status.displayName}">Em preparo</span>
+                    </div>
+                    <p th:text="${order.quantity + ' × ' + order.pizzaType.displayName}">1 × Margherita</p>
+                    <p class="order-drink" th:if="${order.drinkType != null}"
+                       th:text="${order.drinkQuantity + ' × ' + order.drinkType.displayName}">1 × Coca-Cola</p>
+                    <div class="order-price-summary">
+                        <span>Desconto <span th:text="${order.promotion.description}">10% OFF</span>:
+                            − R$ <span th:text="${#numbers.formatDecimal(order.discount, 1, 'POINT', 2, 'COMMA')}">3,99</span>
+                        </span>
+                        <strong>Total: R$ <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 'POINT', 2, 'COMMA')}">35,91</span></strong>
+                    </div>
+                    <p class="order-address" th:text="${order.address}">Endereço</p>
+                    <small th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">13/11/2026 19:00</small>
+                </div>
+                <form th:if="${order.status.name() == 'RECEIVED' or order.status.name() == 'PREPARING'}"
+                      th:action="@{/orders/{id}/advance(id=${order.id})}" method="post">
+                    <button class="button button-outline" type="submit"
+                            th:text="${order.status.next().displayName}">Avançar</button>
+                </form>
+                <a class="button button-outline tracking-link"
+                   th:if="${order.status.name() == 'OUT_FOR_DELIVERY' or order.status.name() == 'DELIVERED'}"
+                   th:href="@{/orders/{id}/tracking(id=${order.id})}"
+                   th:text="${order.status.name() == 'DELIVERED' ? 'Ver trajeto' : 'Acompanhar no mapa'}">Acompanhar no mapa</a>
+                <span class="delivered-mark" th:if="${order.status.name() == 'DELIVERED'}">✓ Concluído</span>
+            </article>
+        </div>
+    </section>
+</main>
+
+<footer>Feito para quem ama pizza. <span>Slicer © 2026</span></footer>
+</body>
+</html>

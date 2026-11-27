@@ -3,6 +3,8 @@ package br.com.pizzadelivery.tracking;
 import br.com.pizzadelivery.domain.OrderStatus;
 import br.com.pizzadelivery.events.DeliveryLocationUpdatedEvent;
 import br.com.pizzadelivery.events.OrderStatusChangedEvent;
+import br.com.pizzadelivery.events.RabbitEventConfig;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,6 +27,7 @@ public class DeliverySimulation {
     }
 
     @EventListener
+    @RabbitListener(queues = RabbitEventConfig.ORDER_STATUS_QUEUE)
     public void onOrderStatusChanged(OrderStatusChangedEvent event) {
         if (event.getStatus() == OrderStatus.OUT_FOR_DELIVERY) {
             UUID orderId = event.getOrderId();
