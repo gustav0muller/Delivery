@@ -55,7 +55,7 @@ public class OrderService {
         DrinkType selectedDrink = drinkQuantity == 0 ? null : drinkType;
         PizzaOrder order = new PizzaOrder(UUID.randomUUID(), customerName.trim(), address.trim(),
                 pizzaType, quantity, selectedDrink, drinkQuantity, Promotion.SLICER_LAUNCH,
-                OrderStatus.RECEIVED, now, now);
+                OrderStatus.PAYMENT_PENDING, now, now);
         orderRepository.save(order);
         eventPublisher.publishEvent(new OrderPlacedEvent(order.getId()));
         return orderRepository.findById(order.getId()).orElseThrow(
@@ -79,6 +79,9 @@ public class OrderService {
 
     public PizzaOrder advanceOrder(UUID orderId) {
         PizzaOrder order = getOrder(orderId);
+        if (order.getStatus() == OrderStatus.PAYMENT_PENDING) {
+            throw new IllegalStateException("Conclua o pagamento antes de avançar o pedido.");
+        }
         OrderStatus nextStatus = order.getStatus().next();
         if (nextStatus == null) {
             throw new IllegalStateException("Este pedido já foi entregue.");

@@ -1,6 +1,6 @@
 # Slicer — Pizza Delivery
 
-Aplicação web de delivery de pizza construída em Java com Spring Boot e Gradle. O fluxo de pedidos usa eventos de domínio para separar a criação do pedido do início do preparo. A interface inclui cardápio, bebidas, promoções, cadastro e login.
+Aplicação web de delivery de pizza construída em Java com Spring Boot e Gradle. O fluxo de pedidos e pagamentos usa eventos de domínio para separar a criação do pedido, a aprovação do pagamento e o início do preparo. A interface inclui cardápio, bebidas, promoções, cadastro e login.
 
 ## Requisitos
 
@@ -36,6 +36,8 @@ Cadastre uma conta em **Criar conta** ou entre em **Entrar**. A autenticação �
 
 Todos os sabores recebem automaticamente 10% de desconto. Refrigerantes selecionados custam R$ 4,90 com pizza; o resumo do pedido mostra bebidas, desconto e total.
 
+O checkout usa um Pix simulado para demonstração: não gera QR Code, não movimenta dinheiro e não coleta dados financeiros. O pedido só é enviado à cozinha depois da aprovação simulada.
+
 Para experimentar o rastreamento, faça um pedido, avance-o até **Saiu para entrega** e clique em **Acompanhar no mapa**. O pizzaiolo se move em uma rota ilustrativa por aproximadamente 30 segundos, e o pedido passa automaticamente para **Entregue** ao chegar. Durante o trajeto, a tela permite enviar mensagens ao entregador e recebe novas mensagens em tempo real; a conversa é encerrada quando o pedido é entregue.
 
 Para executar os testes:
@@ -46,16 +48,17 @@ Para executar os testes:
 
 ## Fluxo orientado a eventos
 
-1. `OrderService` valida e registra o pedido com status `RECEIVED`.
-2. O serviço publica `OrderPlacedEvent`.
-3. `OrderEventHandler` recebe o evento e inicia o preparo, mudando o pedido para `PREPARING`.
-4. Cada mudança publica `OrderStatusChangedEvent`; o consumidor registra a atualização.
-5. Ao chegar a `OUT_FOR_DELIVERY`, `DeliverySimulation` começa a publicar `DeliveryLocationUpdatedEvent` com posições simuladas uma vez por segundo.
-6. `DeliveryLocationEventHandler` guarda a posição, envia atualizações ao navegador por Server-Sent Events (SSE) e publica a conclusão como status `DELIVERED`.
-7. A tela de rastreamento alterna entre três bairros vetoriais e move o ícone do pizzaiolo de moto pelas ruas da rota selecionada; a simulação dura cerca de 30 segundos.
-8. Mensagens do cliente ou do entregador são publicadas como `CourierMessageSentEvent`; `CourierMessageEventHandler` guarda o histórico em memória e distribui as mensagens por SSE para a tela de rastreamento.
+1. `OrderService` valida e registra o pedido com status `PAYMENT_PENDING`, depois publica `OrderPlacedEvent`.
+2. `PaymentEventHandler` cria um pagamento pendente em resposta ao evento.
+3. Ao confirmar no checkout, `PaymentService` publica `PaymentRequestedEvent`; o processador simulado responde com `PaymentApprovedEvent`.
+4. `PaymentEventHandler` registra a aprovação e muda o pedido para `RECEIVED`. `OrderEventHandler` só então inicia o preparo, mudando o pedido para `PREPARING`.
+5. Cada mudança publica `OrderStatusChangedEvent`; o consumidor registra a atualização.
+6. Ao chegar a `OUT_FOR_DELIVERY`, `DeliverySimulation` começa a publicar `DeliveryLocationUpdatedEvent` com posições simuladas uma vez por segundo.
+7. `DeliveryLocationEventHandler` guarda a posição, envia atualizações ao navegador por Server-Sent Events (SSE) e publica a conclusão como status `DELIVERED`.
+8. A tela de rastreamento alterna entre três bairros vetoriais e move o ícone do pizzaiolo de moto pelas ruas da rota selecionada; a simulação dura cerca de 30 segundos.
+9. Mensagens do cliente ou do entregador são publicadas como `CourierMessageSentEvent`; `CourierMessageEventHandler` guarda o histórico em memória e distribui as mensagens por SSE para a tela de rastreamento.
 
-Os eventos são publicados pelo mecanismo de eventos do Spring. A localização é apenas demonstrativa: não usa GPS, serviços de mapas externos ou endereços reais. O chat e os pedidos também ficam em memória; o endpoint `POST /orders/{id}/chat/courier-messages` permite que uma integração do entregador publique respostas. A separação entre serviço, eventos, consumidores, rastreamento e repositório deixa os componentes substituíveis e facilita testes.
+Os eventos são publicados pelo mecanismo de eventos do Spring e encaminhados ao RabbitMQ. O pagamento é apenas demonstrativo; a localização também é ilustrativa e não usa GPS, serviços de mapas externos ou endereços reais. O chat, os pedidos e os pagamentos ficam em memória; o endpoint `POST /orders/{id}/chat/courier-messages` permite que uma integração do entregador publique respostas. A separação entre serviço, eventos, consumidores, rastreamento e repositório deixa os componentes substituíveis e facilita testes.
 
 ## Estrutura
 
@@ -66,6 +69,7 @@ Os eventos são publicados pelo mecanismo de eventos do Spring. A localização 
 - `repository`: contrato e armazenamento em memória.
 - `web`: formulário e rotas MVC.
 - `tracking`: simulação da localização e conexões SSE.
+- `payment`: fluxo de pagamento simulado e armazenamento em memória.
 - `src/main/resources/templates`: interface Thymeleaf.
 - `src/test`: testes unitários e de integração web.
 

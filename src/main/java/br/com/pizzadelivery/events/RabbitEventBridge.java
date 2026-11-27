@@ -36,6 +36,16 @@ public class RabbitEventBridge {
         publish("courier.message.sent", event);
     }
 
+    @EventListener
+    public void bridgePaymentRequested(PaymentRequestedEvent event) {
+        publish("payment.requested", event);
+    }
+
+    @EventListener
+    public void bridgePaymentApproved(PaymentApprovedEvent event) {
+        publish("payment.approved", event);
+    }
+
     private void publish(String routingKey, Object event) {
         try {
             rabbitTemplate.convertAndSend(

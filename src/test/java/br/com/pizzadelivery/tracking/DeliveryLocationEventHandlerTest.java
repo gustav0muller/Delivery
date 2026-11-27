@@ -19,6 +19,7 @@ class DeliveryLocationEventHandlerTest {
         OrderService orderService = new OrderService(new InMemoryOrderRepository(), event -> { });
         PizzaOrder order = orderService.placeOrder(
                 "Ana", "Rua das Flores, 10", PizzaType.PEPPERONI, 1);
+        orderService.changeStatus(order.getId(), OrderStatus.RECEIVED);
         orderService.changeStatus(order.getId(), OrderStatus.PREPARING);
         orderService.changeStatus(order.getId(), OrderStatus.OUT_FOR_DELIVERY);
         DeliveryTrackingRegistry registry = new DeliveryTrackingRegistry();

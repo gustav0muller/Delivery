@@ -22,6 +22,8 @@ public class RabbitEventConfig {
     public static final String ORDER_STATUS_QUEUE = "pizzadelivery.order.status";
     public static final String DELIVERY_LOCATION_QUEUE = "pizzadelivery.delivery.location";
     public static final String COURIER_MESSAGE_QUEUE = "pizzadelivery.courier.message";
+    public static final String PAYMENT_REQUESTED_QUEUE = "pizzadelivery.payment.requested";
+    public static final String PAYMENT_APPROVED_QUEUE = "pizzadelivery.payment.approved";
     public static final String DEAD_LETTER_QUEUE = "pizzadelivery.dead-letter";
 
     @Bean
@@ -67,6 +69,16 @@ public class RabbitEventConfig {
     }
 
     @Bean
+    Queue paymentRequestedQueue() {
+        return eventQueue(PAYMENT_REQUESTED_QUEUE);
+    }
+
+    @Bean
+    Queue paymentApprovedQueue() {
+        return eventQueue(PAYMENT_APPROVED_QUEUE);
+    }
+
+    @Bean
     Binding orderPlacedBinding() {
         return BindingBuilder.bind(orderPlacedQueue())
                 .to(eventsExchange())
@@ -92,6 +104,20 @@ public class RabbitEventConfig {
         return BindingBuilder.bind(courierMessageQueue())
                 .to(eventsExchange())
                 .with("courier.message.sent");
+    }
+
+    @Bean
+    Binding paymentRequestedBinding() {
+        return BindingBuilder.bind(paymentRequestedQueue())
+                .to(eventsExchange())
+                .with("payment.requested");
+    }
+
+    @Bean
+    Binding paymentApprovedBinding() {
+        return BindingBuilder.bind(paymentApprovedQueue())
+                .to(eventsExchange())
+                .with("payment.approved");
     }
 
     @Bean

@@ -1,7 +1,8 @@
 package br.com.pizzadelivery.domain;
 
 public enum OrderStatus {
-    RECEIVED("Recebido"),
+    PAYMENT_PENDING("Aguardando pagamento"),
+    RECEIVED("Pagamento aprovado"),
     PREPARING("Em preparo"),
     OUT_FOR_DELIVERY("Saiu para entrega"),
     DELIVERED("Entregue");
@@ -18,6 +19,8 @@ public enum OrderStatus {
 
     public OrderStatus next() {
         switch (this) {
+            case PAYMENT_PENDING:
+                return RECEIVED;
             case RECEIVED:
                 return PREPARING;
             case PREPARING:

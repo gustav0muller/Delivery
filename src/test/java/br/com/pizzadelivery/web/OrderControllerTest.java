@@ -11,6 +11,8 @@ import br.com.pizzadelivery.service.OrderService;
 import br.com.pizzadelivery.domain.OrderStatus;
 import br.com.pizzadelivery.domain.PizzaOrder;
 import br.com.pizzadelivery.domain.PizzaType;
+import br.com.pizzadelivery.payment.PaymentService;
+import br.com.pizzadelivery.payment.PaymentStatus;
 import br.com.pizzadelivery.tracking.DeliveryTrackingRegistry;
 import br.com.pizzadelivery.tracking.MapVariantSelector;
 
@@ -21,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -31,6 +34,9 @@ class OrderControllerTest {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private PaymentService paymentService;
 
     @Autowired
     private DeliveryTrackingRegistry trackingRegistry;
@@ -54,15 +60,40 @@ class OrderControllerTest {
                         .param("pizzaType", "PEPPERONI")
                         .param("quantity", "2"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"))
-                .andExpect(flash().attribute("success", containsString("Pedido enviado")))
+                .andExpect(redirectedUrlPattern("/orders/*/payment"))
+                .andExpect(flash().attribute("success", containsString("Conclua o pagamento")))
                 .andReturn();
 
-        mockMvc.perform(get("/").session((MockHttpSession) result.getRequest().getSession(false)))
+        mockMvc.perform(get(result.getResponse().getRedirectedUrl())
+                        .session((MockHttpSession) result.getRequest().getSession(false)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Ana")))
-                .andExpect(content().string(containsString("Em preparo")))
-                .andExpect(content().string(containsString("Pedido enviado para a cozinha")));
+                .andExpect(content().string(containsString("Pix (simulado)")))
+                .andExpect(content().string(containsString("nenhuma cobrança real")));
+
+        java.util.UUID orderId = java.util.UUID.fromString(
+                result.getResponse().getRedirectedUrl().split("/")[2]);
+        PizzaOrder order = orderService.getOrder(orderId);
+        org.junit.jupiter.api.Assertions.assertEquals(
+                OrderStatus.PAYMENT_PENDING, order.getStatus());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                PaymentStatus.PENDING, paymentService.findByOrderId(order.getId()).get().getStatus());
+    }
+
+    @Test
+    void simulatedPaymentApprovalStartsKitchenPreparation() throws Exception {
+        PizzaOrder order = orderService.placeOrder(
+                "Ana", "Rua das Flores, 10", PizzaType.PEPPERONI, 1);
+
+        mockMvc.perform(post("/orders/{id}/payment", order.getId()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"))
+                .andExpect(flash().attribute("success", containsString("Pagamento simulado aprovado")));
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                PaymentStatus.APPROVED, paymentService.findByOrderId(order.getId()).get().getStatus());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                OrderStatus.PREPARING, orderService.getOrder(order.getId()).getStatus());
     }
 
     @Test
@@ -74,6 +105,12 @@ class OrderControllerTest {
                 .andExpect(status().is3xxRedirection());
 
         org.junit.jupiter.api.Assertions.assertEquals(
+                OrderStatus.PAYMENT_PENDING, orderService.getOrder(order.getId()).getStatus());
+        paymentService.requestPayment(order.getId());
+        org.junit.jupiter.api.Assertions.assertEquals(
+                OrderStatus.PREPARING, orderService.getOrder(order.getId()).getStatus());
+        orderService.advanceOrder(order.getId());
+        org.junit.jupiter.api.Assertions.assertEquals(
                 OrderStatus.OUT_FOR_DELIVERY, orderService.getOrder(order.getId()).getStatus());
     }
 
@@ -81,6 +118,7 @@ class OrderControllerTest {
     void trackingPageRendersTheIllustratedMapForAnOrderInDelivery() throws Exception {
         PizzaOrder order = orderService.placeOrder(
                 "João", "Avenida Central, 20", PizzaType.MARGHERITA, 1);
+        paymentService.requestPayment(order.getId());
         orderService.advanceOrder(order.getId());
         orderService.advanceOrder(order.getId());
 
@@ -123,6 +161,7 @@ class OrderControllerTest {
     void customerAndCourierCanExchangeMessagesDuringTheDelivery() throws Exception {
         PizzaOrder order = orderService.placeOrder(
                 "João", "Avenida Central, 20", PizzaType.MARGHERITA, 1);
+        paymentService.requestPayment(order.getId());
         orderService.advanceOrder(order.getId());
 
         mockMvc.perform(post("/orders/{id}/chat/messages", order.getId())
@@ -140,6 +179,7 @@ class OrderControllerTest {
 
         mockMvc.perform(get("/orders/{id}/tracking", order.getId()))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-chat-enabled=\"true\"")))
                 .andExpect(content().string(containsString("Pode deixar na portaria?")))
                 .andExpect(content().string(containsString("Claro, aviso quando chegar.")));
     }

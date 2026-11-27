@@ -35,7 +35,7 @@ class OrderServiceTest {
         PizzaOrder order = service.placeOrder(" Ana ", " Rua das Flores, 10 ", PizzaType.PEPPERONI, 2);
 
         assertEquals("Ana", order.getCustomerName());
-        assertEquals(OrderStatus.RECEIVED, repository.findById(order.getId()).get().getStatus());
+        assertEquals(OrderStatus.PAYMENT_PENDING, repository.findById(order.getId()).get().getStatus());
         assertTrue(publishedEvents.get(0) instanceof OrderPlacedEvent);
     }
 
@@ -43,9 +43,11 @@ class OrderServiceTest {
     void onlyAllowsTheNextStatusInTheDeliveryFlow() {
         PizzaOrder order = service.placeOrder("Ana", "Rua das Flores, 10", PizzaType.MARGHERITA, 1);
 
+        PizzaOrder received = service.changeStatus(order.getId(), OrderStatus.RECEIVED);
+        assertEquals(OrderStatus.RECEIVED, received.getStatus());
         PizzaOrder preparing = service.changeStatus(order.getId(), OrderStatus.PREPARING);
         assertEquals(OrderStatus.PREPARING, preparing.getStatus());
-        assertTrue(publishedEvents.get(1) instanceof OrderStatusChangedEvent);
+        assertTrue(publishedEvents.get(2) instanceof OrderStatusChangedEvent);
 
         assertThrows(IllegalStateException.class,
                 () -> service.changeStatus(order.getId(), OrderStatus.DELIVERED));

@@ -6,6 +6,7 @@
     <title>Rastreamento | Slicer</title>
     <link rel="stylesheet" th:href="@{/styles.css}">
     <script th:src="@{/tracking.js}" defer></script>
+    <script th:src="@{/order-notifications.js}" defer></script>
 </head>
 <body>
 <header class="topbar">
@@ -17,7 +18,7 @@
 </header>
 
 <main class="tracking-page" id="tracking-app"
-      th:attr="data-order-id=${order.id},data-map-variant=${mapVariant},data-progress=${location != null ? location.progress : 0},data-eta=${location != null ? location.etaSeconds : 30},data-distance=${location != null ? location.distanceKm : 2.4},data-completed=${location != null ? location.completed : false}">
+      th:attr="data-order-id=${order.id},data-order-status=${order.status.name()},data-map-variant=${mapVariant},data-progress=${location != null ? location.progress : 0},data-eta=${location != null ? location.etaSeconds : 30},data-distance=${location != null ? location.distanceKm : 2.4},data-completed=${location != null ? location.completed : false}">
     <section class="tracking-heading">
         <p class="eyebrow">ACOMPANHAMENTO DO PEDIDO</p>
         <h1 id="tracking-title">Seu pedido está a caminho.</h1>

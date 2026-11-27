@@ -6,6 +6,7 @@
     <title>Slicer | Pizza delivery</title>
     <link rel="stylesheet" th:href="@{/styles.css}">
     <script th:src="@{/order-form.js}" defer></script>
+    <script th:src="@{/order-notifications.js}" defer></script>
 </head>
 <body>
 <header class="topbar">
@@ -130,7 +131,8 @@
             <p>Ainda não há pedidos. Que tal começar?</p>
         </div>
         <div class="order-list" th:unless="${#lists.isEmpty(orders)}">
-            <article class="order-card" th:each="order : ${orders}">
+            <article class="order-card" th:each="order : ${orders}"
+                     th:attr="data-order-id=${order.id},data-order-status=${order.status.name()}">
                 <div class="order-main">
                     <div class="order-title">
                         <h3 th:text="${order.customerName}">Cliente</h3>
@@ -149,11 +151,12 @@
                     <p class="order-address" th:text="${order.address}">Endereço</p>
                     <small th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">13/11/2026 19:00</small>
                 </div>
-                <form th:if="${order.status.name() == 'RECEIVED' or order.status.name() == 'PREPARING'}"
-                      th:action="@{/orders/{id}/advance(id=${order.id})}" method="post">
-                    <button class="button button-outline" type="submit"
-                            th:text="${order.status.next().displayName}">Avançar</button>
-                </form>
+                <span class="automatic-status" th:if="${order.status.name() == 'RECEIVED' or order.status.name() == 'PREPARING'}">
+                    Atualização automática
+                </span>
+                <a class="button button-primary payment-link"
+                   th:if="${order.status.name() == 'PAYMENT_PENDING'}"
+                   th:href="@{/orders/{id}/payment(id=${order.id})}">Pagar pedido</a>
                 <a class="button button-outline tracking-link"
                    th:if="${order.status.name() == 'OUT_FOR_DELIVERY' or order.status.name() == 'DELIVERED'}"
                    th:href="@{/orders/{id}/tracking(id=${order.id})}"

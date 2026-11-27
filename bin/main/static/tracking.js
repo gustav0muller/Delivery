@@ -15,6 +15,7 @@
     var message = document.getElementById('tracking-message');
     var title = document.getElementById('tracking-title');
     var chatForm = document.getElementById('chat-form');
+    var chatCard = chatForm.closest('.chat-card');
     var chatInput = document.getElementById('chat-input');
     var chatMessages = document.getElementById('chat-messages');
     var chatFeedback = document.getElementById('chat-feedback');
@@ -76,9 +77,10 @@
         };
     }
 
-    chatForm.querySelector('button').disabled = app.dataset.chatEnabled !== 'true';
-    chatInput.disabled = app.dataset.chatEnabled !== 'true';
-    if (app.dataset.chatEnabled !== 'true') {
+    var chatEnabled = chatCard.dataset.chatEnabled === 'true';
+    chatForm.querySelector('button').disabled = !chatEnabled;
+    chatInput.disabled = !chatEnabled;
+    if (!chatEnabled) {
         chatConnectionLabel.textContent = 'Conversa encerrada';
         chatFeedback.textContent = 'A conversa fica disponível enquanto o pedido está a caminho.';
     }
@@ -150,8 +152,9 @@
         }).catch(function (error) {
             chatFeedback.textContent = error.message;
         }).then(function () {
-            sendButton.disabled = app.dataset.chatEnabled !== 'true';
+            sendButton.disabled = !chatEnabled;
             chatInput.focus();
         });
     });
+
 }());

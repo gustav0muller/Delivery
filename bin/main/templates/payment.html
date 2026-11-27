@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pagamento | Slicer</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+<body>
+<header class="topbar">
+    <div th:replace="~{fragments/brand :: brand}"></div>
+    <a class="back-link" href="/">← Voltar aos pedidos</a>
+</header>
+
+<main class="payment-page">
+    <section class="payment-card">
+        <p class="eyebrow">CHECKOUT DE DEMONSTRAÇÃO</p>
+        <h1>Finalize seu pedido</h1>
+        <p>
+            Pedido de <strong th:text="${order.customerName}">Cliente</strong>:
+            <span th:text="${order.pizzaType.displayName + ' · ' + order.quantity + ' pizza(s)'}">Pizza</span>
+        </p>
+        <p class="payment-total">
+            Total:
+            <strong>R$ <span th:text="${#numbers.formatDecimal(payment.amount, 1, 'POINT', 2, 'COMMA')}">35,91</span></strong>
+        </p>
+        <div class="payment-method">
+            <strong>Meio de pagamento</strong>
+            <span th:text="${payment.method.displayName}">Pix (simulado)</span>
+        </div>
+        <p class="form-note">
+            Esta é uma simulação: nenhum Pix será enviado e nenhuma cobrança real será feita.
+            Ao confirmar, o pagamento será aprovado para demonstração e o pedido seguirá para a cozinha.
+        </p>
+        <form th:action="@{/orders/{id}/payment(id=${order.id})}" method="post">
+            <button class="button button-primary" type="submit">Simular pagamento</button>
+        </form>
+    </section>
+</main>
+
+<footer>Feito para quem ama pizza. <span>Slicer © 2026</span></footer>
+</body>
+</html>
